@@ -1,0 +1,24 @@
+name: odmatrix
+channels:
+  - conda-forge
+dependencies:
+  - python=3.12
+  - pandas>=2.1
+  - numpy>=1.26
+  - geopandas
+  - matplotlib
+  - seaborn
+  - rasterio
+  - duckdb
+  - pyarrow>=15.0
+  - scipy>=1.11
+  - tqdm>=4.66
+  - pyyaml
+  - libpysal=4.13.0
+  - esda=2.8.0
+  - sphinx>=7.0
+  - furo>=2024.0.0
+  - pytest>=8.0
+  - pip
+  - pip:
+      - googlemaps

@@ -1,0 +1,126 @@
+# Example configuration for the exposure inequality release pipeline.
+# Replace all placeholder paths with local licensed/public inputs before running.
+
+study_area:
+  geojson_path: "inputs/example_city/msa_boundary.geojson"
+
+purple_air:
+  api_key: "${PURPLEAIR_API_KEY}"
+
+pollution:
+  # Options: "static" (TIFF raster), "dynamic" (time-indexed CSV), "bayesian" (fusion CSV).
+  mode: "bayesian"
+
+  raster_path: "inputs/example_city/pm25_baseline.tif"
+  dynamic_csv_path: "inputs/example_city/pm25_dynamic.csv"
+  bayesian_csv_path: "inputs/example_city/pm25_predictions_long.csv"
+  bayesian_column: "pm25_q050"
+  bayesian_low_column: "pm25_q005"
+  bayesian_high_column: "pm25_q095"
+
+  grid_resolution: "raw"
+  travel_exposure: 1.0
+  travel_exposure_type: "mid-point-hapem"
+
+  travel_hapem:
+    pen: 0.798
+    prox: 2.518
+
+  pen_prox:
+    sampling: "deterministic"
+    seed: 42
+    school_p_outdoor: 0.2
+    table:
+      work_indoor:
+        pen: {gm: 0.385, gsd: 1.69}
+        prox: {gm: 1.0, gsd: 1.0}
+      work_outdoor_near_road:
+        pen: {gm: 1.0, gsd: 1.0}
+        prox: {gm: 1.803, gsd: 2.97}
+      school_indoor:
+        pen: {gm: 0.385, gsd: 1.69}
+        prox: {gm: 1.0, gsd: 1.0}
+      school_outdoor:
+        pen: {gm: 1.0, gsd: 1.0}
+        prox: {gm: 1.0, gsd: 1.0}
+
+  hapem:
+    work:
+      enable_bernoulli: false
+    school:
+      enable_bernoulli: false
+
+activity_data:
+  path: "inputs/example_city/activity_sample.csv"
+  person_id_column: "trip_taker_person_id"
+  bbox_filter:
+    enabled: false
+    min_longitude: -180.0
+    max_longitude: 180.0
+    min_latitude: -90.0
+    max_latitude: 90.0
+  coordinate_columns:
+    home_longitude: "trip_taker_home_bgrp_lng_2020"
+    home_latitude: "trip_taker_home_bgrp_lat_2020"
+    origin_longitude: "origin_bgrp_lng_2020"
+    origin_latitude: "origin_bgrp_lat_2020"
+    destination_longitude: "destination_bgrp_lng_2020"
+    destination_latitude: "destination_bgrp_lat_2020"
+
+analysis:
+  exposure_metric: "cumulative"
+  cohorts:
+    - name: "income"
+      output_root: "results/income_cohort"
+      groups:
+        - name: "income_low"
+          description: "Example lower income group"
+          filter: "trip_taker_individual_income < 40000"
+        - name: "income_high"
+          description: "Example higher income group"
+          filter: "trip_taker_individual_income >= 120000"
+    - name: "race_ethnicity"
+      output_root: "results/race_cohort"
+      groups:
+        - name: "race_white"
+          description: "White, not Hispanic or Latino"
+          filter: "trip_taker_race_ethnicity = 'white_not_hispanic_or_latino'"
+        - name: "race_non_white"
+          description: "All other race or ethnicity categories"
+          filter: "trip_taker_race_ethnicity <> 'white_not_hispanic_or_latino'"
+  output:
+    visualization_sample_size: 10
+    visualization_random_seed: 42
+    person_plot_prob: 0.05
+
+performance:
+  chunk_size: 1000
+  exposure_chunk_size: 10000
+  stream_stay_points: true
+  stream_exposure_outputs: true
+
+outputs:
+  results_root: "results"
+  temp_root: "temp_processing"
+  repo_results_root: "results"
+
+debug:
+  enabled: false
+  person_ids: []
+
+work_outdoor_model:
+  enabled: false
+  oews_nat4d_path: "inputs/lookups/OEWS_nat4d.csv"
+  onet_work_context_path: "inputs/lookups/ONET_Work_Context.csv"
+  outdoor_elements:
+    - "Outdoors, Exposed to All Weather Conditions"
+    - "Outdoors, Under Cover"
+  outdoor_category_threshold: 4
+  combine_elements: "union"
+  oews_occ_group: "detailed"
+  output_person_params_csv: "results/person_work_outdoor_probs.csv"
+  output_sector_probs_csv: "results/sector_outdoor_probs.csv"
+  output_missingness_csv: "results/work_outdoor_missingness.csv"
+
+microenv_labeling:
+  home_distance_threshold_m: 100.0

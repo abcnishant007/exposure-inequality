@@ -1,0 +1,22 @@
+name: Tests
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  public-unit-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: conda-incubator/setup-miniconda@v3
+        with:
+          environment-file: environment.yml
+          activate-environment: odmatrix
+          auto-activate-base: false
+          channels: conda-forge
+
+      - name: Run public unit tests
+        shell: bash -l {0}
+        run: pytest tests -m "not private_data"
